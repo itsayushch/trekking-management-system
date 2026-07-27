@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">My Bookings</h2>
+
+<div class="table-responsive">
+<table class="table table-bordered bg-white align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Booking ID</th>
+            <th>Trek</th>
+            <th>Location</th>
+            <th>Booking Date</th>
+            <th>Trek Status</th>
+            <th>Booking Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for booking in booking_list %}
+        <tr>
+            <td>{{ booking.id }}</td>
+            <td>{{ booking.trek.name }}</td>
+            <td>{{ booking.trek.location }}</td>
+            <td>{{ booking.booking_date.strftime('%d-%m-%Y') }}</td>
+            <td>{{ booking.trek.status }}</td>
+            <td>
+                {% if booking.status == 'Booked' %}
+                    <span class="badge bg-success">Booked</span>
+                {% elif booking.status == 'Cancelled' %}
+                    <span class="badge bg-danger">Cancelled</span>
+                {% else %}
+                    <span class="badge bg-dark">Completed</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" class="text-center text-muted">You haven't booked any treks yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<a href="{{ url_for('browse_treks') }}" class="btn btn-outline-primary">Browse More Treks</a>
+
+{% endblock %}

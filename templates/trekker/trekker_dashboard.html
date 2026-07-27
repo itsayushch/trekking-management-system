@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">My Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body">
+                <h6 class="card-title">Open Treks Available</h6>
+                <p class="display-6 mb-0">{{ open_treks }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-primary h-100">
+            <div class="card-body">
+                <h6 class="card-title">My Bookings</h6>
+                <p class="display-6 mb-0">{{ total_bookings }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-4 mb-2">
+        <a href="{{ url_for('browse_treks') }}" class="btn btn-outline-primary w-100">Browse Treks</a>
+    </div>
+    <div class="col-md-4 mb-2">
+        <a href="{{ url_for('my_bookings') }}" class="btn btn-outline-primary w-100">My Bookings</a>
+    </div>
+    <div class="col-md-4 mb-2">
+        <a href="{{ url_for('trekker_profile') }}" class="btn btn-outline-primary w-100">Edit Profile</a>
+    </div>
+</div>
+
+{% endblock %}
