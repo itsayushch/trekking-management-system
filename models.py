@@ -24,7 +24,7 @@ class StaffProfile(db.Model):
     is_approved = db.Column(db.Boolean, default=False)  # Admin approval status
     
     # Relationships
-    user = db.relationship('User', backref='staff_profile', uselist=False)
+    user = db.relationship('User', backref=db.backref('staff_profile', uselist=False))
 
 class Trek(db.Model):
     __tablename__ = 'trek'

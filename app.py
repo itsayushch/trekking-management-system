@@ -333,7 +333,104 @@ def admin_bookings():
 def staff_dashboard():
     if session.get('role') != 'staff':
         return redirect(url_for('login'))
-    return render_template('staff/staff_dashboard.html')
+
+    my_treks = Trek.query.filter_by(assigned_staff_id=session['user_id']).all()
+
+    trek_data = []
+    for trek in my_treks:
+        count = Booking.query.filter_by(trek_id=trek.id, status='Booked').count()
+        trek_data.append((trek, count))
+
+    return render_template('staff/staff_dashboard.html', trek_data=trek_data)
+
+
+@app.route('/staff/profile', methods=['GET', 'POST'])
+def staff_profile():
+    if session.get('role') != 'staff':
+        return redirect(url_for('login'))
+
+    user = User.query.get(session['user_id'])
+
+    if request.method == 'GET':
+        return render_template('staff/profile.html', user=user)
+
+    assert user is not None
+    user.name = request.form['name']
+
+    if user.staff_profile:
+        user.staff_profile.contact_details = request.form.get('contact_details')
+
+    new_password = request.form.get('password')
+    if new_password:
+        user.password = new_password
+
+    db.session.commit()
+    return redirect(url_for('staff_profile'))
+
+
+@app.route('/staff/treks/<int:id>')
+def staff_view_trek(id):
+    if session.get('role') != 'staff':
+        return redirect(url_for('login'))
+
+    trek = Trek.query.get(id)
+    if not trek:
+        return 'Trek not found'
+
+    if trek.assigned_staff_id != session['user_id']:
+        return 'This trek is not assigned to you'
+
+    participants = Booking.query.filter_by(trek_id=trek.id).all()
+    return render_template('staff/trek_detail.html', trek=trek, participants=participants)
+
+
+@app.route('/staff/treks/<int:id>/update', methods=['POST'])
+def staff_update_trek(id):
+    if session.get('role') != 'staff':
+        return redirect(url_for('login'))
+
+    trek = Trek.query.get(id)
+    if not trek:
+        return 'Trek not found'
+
+    if trek.assigned_staff_id != session['user_id']:
+        return 'This trek is not assigned to you'
+
+    slots = request.form.get('available_slots')
+    if slots:
+        try:
+            trek.available_slots = int(slots)
+        except ValueError:
+            return 'Slots must be a number'
+
+    new_status = request.form.get('status')
+    if new_status in ['Open', 'Closed', 'Ongoing', 'Completed']:
+        trek.status = new_status
+
+    db.session.commit()
+    return redirect(url_for('staff_view_trek', id=trek.id))
+
+
+@app.route('/staff/treks/<int:trek_id>/participant/<int:booking_id>', methods=['POST'])
+def staff_update_participant(trek_id, booking_id):
+    if session.get('role') != 'staff':
+        return redirect(url_for('login'))
+
+    trek = Trek.query.get(trek_id)
+    if not trek or trek.assigned_staff_id != session['user_id']:
+        return 'This trek is not assigned to you'
+
+    booking = Booking.query.get(booking_id)
+    if not booking or booking.trek_id != trek_id:
+        return 'Booking not found'
+
+    new_status = request.form.get('status')
+    if new_status in ['Booked', 'Cancelled', 'Completed']:
+        booking.status = new_status
+        db.session.commit()
+
+    return redirect(url_for('staff_view_trek', id=trek_id))
+
 
 @app.route('/trekker/dashboard')
 def trekker_dashboard():
