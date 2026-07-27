@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Staff{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">Trek Staff</h2>
+
+<div class="table-responsive">
+<table class="table table-bordered bg-white align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Contact</th>
+            <th>Approved</th>
+            <th>Blacklisted</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for staff in staff_list %}
+        <tr>
+            <td>{{ staff.id }}</td>
+            <td>{{ staff.name }}</td>
+            <td>{{ staff.email }}</td>
+            <td>{{ staff.staff_profile.contact_details or '-' }}</td>
+            <td>
+                {% if staff.staff_profile and staff.staff_profile.is_approved %}
+                    <span class="badge bg-success">Approved</span>
+                {% else %}
+                    <span class="badge bg-secondary">Pending</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if staff.is_blacklisted %}
+                    <span class="badge bg-danger">Blacklisted</span>
+                {% else %}
+                    <span class="badge bg-light text-dark border">No</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if not staff.staff_profile or not staff.staff_profile.is_approved %}
+                    <a href="{{ url_for('approve_staff', id=staff.id) }}" class="btn btn-sm btn-success">Approve</a>
+                {% endif %}
+
+                <a href="{{ url_for('toggle_blacklist', id=staff.id) }}" class="btn btn-sm btn-warning">
+                    {% if staff.is_blacklisted %}Unblacklist{% else %}Blacklist{% endif %}
+                </a>
+
+                <a href="{{ url_for('remove_staff', id=staff.id) }}" class="btn btn-sm btn-danger"
+                   onclick="return confirm('Remove this staff member? This cannot be undone.')">Remove</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7" class="text-center text-muted">No staff members yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% endblock %}

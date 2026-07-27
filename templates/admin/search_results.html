@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Search{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">Search Treks / Staff / Users</h2>
+
+<form method="GET" action="{{ url_for('admin_search') }}" class="row g-2 mb-4">
+    <div class="col-md-3">
+        <select name="type" class="form-select">
+            <option value="trek" {% if search_type == 'trek' %}selected{% endif %}>Trek</option>
+            <option value="staff" {% if search_type == 'staff' %}selected{% endif %}>Staff</option>
+            <option value="user" {% if search_type == 'user' %}selected{% endif %}>User</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <input type="text" name="q" class="form-control" placeholder="Search by name or ID" value="{{ keyword }}">
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100">Search</button>
+    </div>
+</form>
+
+{% if keyword %}
+
+    {% if search_type == 'trek' %}
+        <table class="table table-bordered bg-white">
+            <thead class="table-light">
+                <tr><th>ID</th><th>Name</th><th>Location</th><th>Difficulty</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                {% for trek in results %}
+                <tr>
+                    <td>{{ trek.id }}</td>
+                    <td>{{ trek.name }}</td>
+                    <td>{{ trek.location }}</td>
+                    <td>{{ trek.difficulty }}</td>
+                    <td>{{ trek.status }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted">No treks matched "{{ keyword }}".</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% elif search_type == 'staff' %}
+        <table class="table table-bordered bg-white">
+            <thead class="table-light">
+                <tr><th>ID</th><th>Name</th><th>Email</th><th>Approved</th></tr>
+            </thead>
+            <tbody>
+                {% for staff in results %}
+                <tr>
+                    <td>{{ staff.id }}</td>
+                    <td>{{ staff.name }}</td>
+                    <td>{{ staff.email }}</td>
+                    <td>{{ 'Yes' if staff.staff_profile and staff.staff_profile.is_approved else 'No' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-muted">No staff matched "{{ keyword }}".</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <table class="table table-bordered bg-white">
+            <thead class="table-light">
+                <tr><th>ID</th><th>Name</th><th>Email</th><th>Blacklisted</th></tr>
+            </thead>
+            <tbody>
+                {% for person in results %}
+                <tr>
+                    <td>{{ person.id }}</td>
+                    <td>{{ person.name }}</td>
+                    <td>{{ person.email }}</td>
+                    <td>{{ 'Yes' if person.is_blacklisted else 'No' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-muted">No users matched "{{ keyword }}".</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+{% else %}
+    <p class="text-muted">Enter a name or ID above to search.</p>
+{% endif %}
+
+{% endblock %}

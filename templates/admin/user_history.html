@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking History{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-1">Booking History - {{ person.name }}</h2>
+<p class="text-muted mb-4">{{ person.email }}</p>
+
+<div class="table-responsive">
+<table class="table table-bordered bg-white align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Booking ID</th>
+            <th>Trek</th>
+            <th>Booking Date</th>
+            <th>Status</th>
+            <th>Payment</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in history %}
+        <tr>
+            <td>{{ record.id }}</td>
+            <td>{{ record.trek.name }}</td>
+            <td>{{ record.booking_date.strftime('%d-%m-%Y') }}</td>
+            <td>
+                {% if record.status == 'Booked' %}
+                    <span class="badge bg-success">Booked</span>
+                {% elif record.status == 'Cancelled' %}
+                    <span class="badge bg-danger">Cancelled</span>
+                {% else %}
+                    <span class="badge bg-dark">Completed</span>
+                {% endif %}
+            </td>
+            <td>{{ record.payment_status }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" class="text-center text-muted">This user has no bookings yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<a href="{{ url_for('manage_users') }}" class="btn btn-outline-secondary">Back to Users</a>
+
+{% endblock %}

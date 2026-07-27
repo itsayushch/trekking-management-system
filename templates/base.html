@@ -20,22 +20,22 @@
             <ul class="navbar-nav ms-auto">
 
                 {% if session.get('role') == 'admin' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_treks') }}">Treks</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_staff') }}">Staff</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_users') }}">Users</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_bookings') }}">Bookings</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_search') }}">Search</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint in ['manage_treks', 'create_trek', 'edit_trek', 'assign_trek_staff'] %}active{% endif %}" href="{{ url_for('manage_treks') }}">Treks</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'manage_staff' %}active{% endif %}" href="{{ url_for('manage_staff') }}">Staff</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint in ['manage_users', 'admin_user_history'] %}active{% endif %}" href="{{ url_for('manage_users') }}">Users</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_bookings' %}active{% endif %}" href="{{ url_for('admin_bookings') }}">Bookings</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_search' %}active{% endif %}" href="{{ url_for('admin_search') }}">Search</a></li>
 
                 {% elif session.get('role') == 'staff' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('staff_dashboard') }}">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('staff_profile') }}">Profile</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'staff_dashboard' %}active{% endif %}" href="{{ url_for('staff_dashboard') }}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'staff_profile' %}active{% endif %}" href="{{ url_for('staff_profile') }}">Profile</a></li>
 
                 {% elif session.get('role') == 'trekker' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('trekker_dashboard') }}">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('browse_treks') }}">Browse Treks</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('my_bookings') }}">My Bookings</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('trekker_profile') }}">Profile</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'trekker_dashboard' %}active{% endif %}" href="{{ url_for('trekker_dashboard') }}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'browse_treks' %}active{% endif %}" href="{{ url_for('browse_treks') }}">Browse Treks</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'my_bookings' %}active{% endif %}" href="{{ url_for('my_bookings') }}">My Bookings</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'trekker_profile' %}active{% endif %}" href="{{ url_for('trekker_profile') }}">Profile</a></li>
                 {% endif %}
 
                 {% if session.get('user_id') %}

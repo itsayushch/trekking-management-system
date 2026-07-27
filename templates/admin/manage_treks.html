@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Treks{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Treks</h2>
+    <a href="{{ url_for('create_trek') }}" class="btn btn-primary">+ Create New Trek</a>
+</div>
+
+<div class="table-responsive">
+<table class="table table-bordered bg-white align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Difficulty</th>
+            <th>Duration</th>
+            <th>Slots</th>
+            <th>Assigned Staff</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for trek in trek_list %}
+        <tr>
+            <td>{{ trek.id }}</td>
+            <td>{{ trek.name }}</td>
+            <td>{{ trek.location }}</td>
+            <td>{{ trek.difficulty }}</td>
+            <td>{{ trek.duration_days }} days</td>
+            <td>{{ trek.available_slots }}</td>
+            <td>{{ trek.assigned_staff.name if trek.assigned_staff else '-' }}</td>
+            <td>
+                {% if trek.status == 'Open' %}
+                    <span class="badge bg-success">{{ trek.status }}</span>
+                {% elif trek.status == 'Closed' %}
+                    <span class="badge bg-secondary">{{ trek.status }}</span>
+                {% elif trek.status == 'Completed' %}
+                    <span class="badge bg-dark">{{ trek.status }}</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">{{ trek.status }}</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('edit_trek', id=trek.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                <a href="{{ url_for('assign_trek_staff', id=trek.id) }}" class="btn btn-sm btn-outline-secondary">Assign Staff</a>
+                <a href="{{ url_for('delete_trek', id=trek.id) }}" class="btn btn-sm btn-danger"
+                   onclick="return confirm('Delete this trek?')">Delete</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="9" class="text-center text-muted">No treks created yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% endblock %}

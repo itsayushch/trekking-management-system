@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">Trekkers</h2>
+
+<div class="table-responsive">
+<table class="table table-bordered bg-white align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Blacklisted</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for trekker in trekker_list %}
+        <tr>
+            <td>{{ trekker.id }}</td>
+            <td>{{ trekker.name }}</td>
+            <td>{{ trekker.email }}</td>
+            <td>
+                {% if trekker.is_blacklisted %}
+                    <span class="badge bg-danger">Blacklisted</span>
+                {% else %}
+                    <span class="badge bg-light text-dark border">No</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('admin_user_history', id=trekker.id) }}" class="btn btn-sm btn-outline-primary">History</a>
+                <a href="{{ url_for('toggle_blacklist', id=trekker.id) }}" class="btn btn-sm btn-warning">
+                    {% if trekker.is_blacklisted %}Unblacklist{% else %}Blacklist{% endif %}
+                </a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" class="text-center text-muted">No trekkers registered yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% endblock %}
