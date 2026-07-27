@@ -436,7 +436,89 @@ def staff_update_participant(trek_id, booking_id):
 def trekker_dashboard():
     if session.get('role') != 'trekker':
         return redirect(url_for('login'))
-    return render_template('trekker/trekker_dashboard.html')
+
+    open_treks = Trek.query.filter_by(status='Open').count()
+    my_bookings = Booking.query.filter_by(user_id=session['user_id']).count()
+
+    return render_template('trekker/trekker_dashboard.html', open_treks=open_treks, my_bookings=my_bookings)
+
+
+@app.route('/trekker/profile', methods=['GET', 'POST'])
+def trekker_profile():
+    if session.get('role') != 'trekker':
+        return redirect(url_for('login'))
+
+    user = User.query.get(session['user_id'])
+
+    if request.method == 'GET':
+        return render_template('trekker/profile.html', user=user)
+
+    assert user is not None
+    user.name = request.form['name']
+
+    new_password = request.form.get('password')
+    if new_password:
+        user.password = new_password
+
+    db.session.commit()
+    return redirect(url_for('trekker_profile'))
+
+
+@app.route('/trekker/treks')
+def browse_treks():
+    if session.get('role') != 'trekker':
+        return redirect(url_for('login'))
+
+    treks_query = Trek.query.filter_by(status='Open')
+
+    difficulty = request.args.get('difficulty')
+    location = request.args.get('location')
+
+    if difficulty:
+        treks_query = treks_query.filter(Trek.difficulty == difficulty)
+    if location:
+        treks_query = treks_query.filter(Trek.location.ilike('%' + location + '%'))
+
+    treks = treks_query.all()
+    return render_template('trekker/browse_treks.html', treks=treks, difficulty=difficulty, location=location)
+
+
+@app.route('/trekker/treks/<int:id>/book', methods=['POST'])
+def book_trek(id):
+    if session.get('role') != 'trekker':
+        return redirect(url_for('login'))
+
+    trek = Trek.query.get(id)
+    if not trek:
+        return 'Trek not found'
+
+    already_booked = Booking.query.filter_by(user_id=session['user_id'], trek_id=id, status='Booked').first()
+    if already_booked:
+        return 'You have already booked this trek'
+
+    if trek.status != 'Open':
+        return 'This trek is not open for booking'
+
+    if trek.available_slots <= 0:
+        return 'No slots left for this trek'
+
+    new_booking = Booking(user_id=session['user_id'], trek_id=id, status='Booked')  # type: ignore
+    trek.available_slots = trek.available_slots - 1
+
+    db.session.add(new_booking)
+    db.session.commit()
+
+    return redirect(url_for('my_bookings'))
+
+
+@app.route('/trekker/bookings')
+def my_bookings():
+    if session.get('role') != 'trekker':
+        return redirect(url_for('login'))
+
+    booking_list = Booking.query.filter_by(user_id=session['user_id']).order_by(Booking.booking_date.desc()).all()
+    return render_template('trekker/my_bookings.html', booking_list=booking_list)
+
 
 @app.route('/logout')
 def logout():
