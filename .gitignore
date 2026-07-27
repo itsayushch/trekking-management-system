@@ -28,13 +28,13 @@ venv/
 .venv
 
 # Flask
-# instance/
+instance/
 .webassets-cache
 
 # Database
-# *.db
-# *.sqlite
-# *.sqlite3
+*.db
+*.sqlite
+*.sqlite3
 
 # IDE & Editor
 .vscode/
