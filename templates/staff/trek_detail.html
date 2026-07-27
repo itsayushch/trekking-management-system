@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ trek.name }} - Manage Trek{% endblock %}
+
+{% block content %}
+
+<a href="{{ url_for('staff_dashboard') }}" class="btn btn-sm btn-outline-secondary mb-3">&laquo; Back to Dashboard</a>
+
+<h2 class="mb-1">{{ trek.name }}</h2>
+<p class="text-muted mb-4">{{ trek.location }} &middot; {{ trek.difficulty }} &middot; {{ trek.duration_days }} days</p>
+
+<div class="card mb-4">
+<div class="card-body">
+    <h5 class="card-title">Trek Settings</h5>
+
+    <form method="POST" action="{{ url_for('staff_update_trek', id=trek.id) }}" class="row g-3 align-items-end">
+
+        <div class="col-md-3">
+            <label class="form-label">Available Slots</label>
+            <input type="number" name="available_slots" class="form-control" value="{{ trek.available_slots }}" min="0">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+                <option value="Open" {% if trek.status == 'Open' %}selected{% endif %}>Open</option>
+                <option value="Closed" {% if trek.status == 'Closed' %}selected{% endif %}>Closed</option>
+                <option value="Completed" {% if trek.status == 'Completed' %}selected{% endif %}>Completed</option>
+            </select>
+            {% if trek.status in ['Pending', 'Approved'] %}
+                <div class="form-text">Current status is "{{ trek.status }}" - set by Admin.</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Update Trek</button>
+        </div>
+    </form>
+
+    <div class="form-text mt-2">
+        Marking the trek as Completed will also mark every currently booked trekker as Completed.
+    </div>
+</div>
+</div>
+
+<h5 class="mb-3">Registered Trekkers</h5>
+
+<div class="table-responsive">
+<table class="table table-bordered bg-white align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Booking ID</th>
+            <th>Trekker</th>
+            <th>Email</th>
+            <th>Booking Date</th>
+            <th>Status</th>
+            <th>Update Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for booking in participants %}
+        <tr>
+            <td>{{ booking.id }}</td>
+            <td>{{ booking.user.name }}</td>
+            <td>{{ booking.user.email }}</td>
+            <td>{{ booking.booking_date.strftime('%d-%m-%Y') }}</td>
+            <td>
+                {% if booking.status == 'Booked' %}
+                    <span class="badge bg-success">Booked</span>
+                {% elif booking.status == 'Cancelled' %}
+                    <span class="badge bg-danger">Cancelled</span>
+                {% else %}
+                    <span class="badge bg-dark">Completed</span>
+                {% endif %}
+            </td>
+            <td>
+                <form method="POST" action="{{ url_for('staff_update_participant', trek_id=trek.id, booking_id=booking.id) }}" class="d-flex gap-2">
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="Booked" {% if booking.status == 'Booked' %}selected{% endif %}>Booked</option>
+                        <option value="Cancelled" {% if booking.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                        <option value="Completed" {% if booking.status == 'Completed' %}selected{% endif %}>Completed</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" class="text-center text-muted">No one has booked this trek yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Dashboard{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">My Assigned Treks</h2>
+
+<div class="table-responsive">
+<table class="table table-bordered bg-white align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Trek Name</th>
+            <th>Location</th>
+            <th>Difficulty</th>
+            <th>Slots Left</th>
+            <th>Status</th>
+            <th>Registered Trekkers</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for trek, count in trek_data %}
+        <tr>
+            <td>{{ trek.id }}</td>
+            <td>{{ trek.name }}</td>
+            <td>{{ trek.location }}</td>
+            <td>{{ trek.difficulty }}</td>
+            <td>{{ trek.available_slots }}</td>
+            <td>
+                {% if trek.status == 'Open' %}
+                    <span class="badge bg-success">Open</span>
+                {% elif trek.status == 'Closed' %}
+                    <span class="badge bg-secondary">Closed</span>
+                {% elif trek.status == 'Completed' %}
+                    <span class="badge bg-dark">Completed</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">{{ trek.status }}</span>
+                {% endif %}
+            </td>
+            <td>{{ count }}</td>
+            <td>
+                <a href="{{ url_for('staff_view_trek', id=trek.id) }}" class="btn btn-sm btn-outline-primary">Manage</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="8" class="text-center text-muted">No treks have been assigned to you yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% endblock %}
