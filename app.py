@@ -11,6 +11,8 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+TREK_STATUSES = ['Pending', 'Approved', 'Open', 'Closed', 'Completed']
+
 @app.route('/')
 def home():
     return "Hello World"
@@ -232,6 +234,8 @@ def edit_trek(id):
 
     new_status = request.form.get('status')
     if new_status:
+        if new_status not in TREK_STATUSES:
+            return 'Invalid status'
         trek.status = new_status
 
     staff_choice = request.form.get('assigned_staff_id')
@@ -254,10 +258,14 @@ def delete_trek(id):
         return redirect(url_for('login'))
 
     trek = Trek.query.get(id)
-    if trek:
-        Booking.query.filter_by(trek_id=trek.id).delete()
-        db.session.delete(trek)
-        db.session.commit()
+    if not trek:
+        return redirect(url_for('manage_treks'))
+
+    if Booking.query.filter_by(trek_id=trek.id).count() > 0:
+        return 'This trek has booking history, cannot be deleted'
+
+    db.session.delete(trek)
+    db.session.commit()
 
     return redirect(url_for('manage_treks'))
 
@@ -326,6 +334,19 @@ def admin_bookings():
 
     booking_list = Booking.query.order_by(Booking.booking_date.desc()).all()
     return render_template('admin/bookings.html', booking_list=booking_list)
+
+
+@app.route('/admin/users/<int:id>/history')
+def admin_user_history(id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    person = User.query.get(id)
+    if not person:
+        return 'User not found'
+
+    records = Booking.query.filter_by(user_id=id).order_by(Booking.booking_date.desc()).all()
+    return render_template('admin/user_history.html', person=person, records=records)
 
 
 # ------- Staff --------
@@ -404,8 +425,13 @@ def staff_update_trek(id):
             return 'Slots must be a number'
 
     new_status = request.form.get('status')
-    if new_status in ['Open', 'Closed', 'Ongoing', 'Completed']:
+    if new_status in ['Open', 'Closed', 'Completed']:
         trek.status = new_status
+
+        if new_status == 'Completed':
+            still_booked = Booking.query.filter_by(trek_id=trek.id, status='Booked').all()
+            for b in still_booked:
+                b.status = 'Completed'
 
     db.session.commit()
     return redirect(url_for('staff_view_trek', id=trek.id))
@@ -425,9 +451,20 @@ def staff_update_participant(trek_id, booking_id):
         return 'Booking not found'
 
     new_status = request.form.get('status')
-    if new_status in ['Booked', 'Cancelled', 'Completed']:
-        booking.status = new_status
-        db.session.commit()
+    if new_status not in ['Booked', 'Cancelled', 'Completed']:
+        return redirect(url_for('staff_view_trek', id=trek_id))
+
+    old_status = booking.status
+
+    if old_status == 'Booked' and new_status == 'Cancelled':
+        trek.available_slots = trek.available_slots + 1
+    elif old_status == 'Cancelled' and new_status == 'Booked':
+        if trek.available_slots <= 0:
+            return 'No slots left to reinstate this booking'
+        trek.available_slots = trek.available_slots - 1
+
+    booking.status = new_status
+    db.session.commit()
 
     return redirect(url_for('staff_view_trek', id=trek_id))
 
