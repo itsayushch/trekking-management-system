@@ -15,7 +15,7 @@ TREK_STATUSES = ['Pending', 'Approved', 'Open', 'Closed', 'Completed']
 
 @app.route('/')
 def home():
-    return "Hello World"
+    return render_template('home.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -137,23 +137,24 @@ def toggle_blacklist(id):
         return redirect(url_for('login'))
 
     person = User.query.get(id)
-    if person is None:
+
+    if not person:
         return 'No such user'
 
     if person.role == 'admin':
-        return 'Admin cannot be blacklisted'
+        return 'Admin cannot be blacklisted!'
 
     if person.is_blacklisted:
         person.is_blacklisted = False
     else:
         person.is_blacklisted = True
+
     db.session.commit()
 
-    if person.role == 'staff':
+    if (person.role == 'staff'):
         return redirect(url_for('manage_staff'))
     else:
         return redirect(url_for('manage_users'))
-
 
 @app.route('/admin/users')
 def manage_users():
@@ -183,7 +184,7 @@ def create_trek():
     if request.method == 'GET':
         return render_template('admin/create_trek.html', staff_options=approved_staff)
 
-    trek_name = request.form['name']
+    name = request.form['name']
     location = request.form['location']
     difficulty = request.form['difficulty']
 
@@ -193,21 +194,21 @@ def create_trek():
     except ValueError:
         return 'Duration and slots must be numbers'
 
+    new_trek = Trek(name=name, location=location, difficulty=difficulty, duration_days=duration_days, available_slots=available_slots, status='Pending') # type: ignore
+
     staff_choice = request.form.get('assigned_staff_id')
-
-    t = Trek(name=trek_name, location=location, difficulty=difficulty, duration_days=duration_days, available_slots=available_slots, status='Pending') # type: ignore 
-
     if staff_choice:
-        t.assigned_staff_id = int(staff_choice)
+        new_trek.assigned_staff_id = int(staff_choice)
 
-    start_str = request.form.get('start_date')
-    end_str = request.form.get('end_date')
-    if start_str:
-        t.start_date = datetime.strptime(start_str, '%Y-%m-%d').date()
-    if end_str:
-        t.end_date = datetime.strptime(end_str, '%Y-%m-%d').date()
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
 
-    db.session.add(t)
+    if start_date:
+        new_trek.start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    if end_date:
+        new_trek.end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+    db.session.add(new_trek)
     db.session.commit()
 
     return redirect(url_for('manage_treks'))
@@ -219,6 +220,7 @@ def edit_trek(id):
         return redirect(url_for('login'))
 
     trek = Trek.query.get(id)
+
     if not trek:
         return 'Trek not found'
 
@@ -239,16 +241,21 @@ def edit_trek(id):
         trek.status = new_status
 
     staff_choice = request.form.get('assigned_staff_id')
-    trek.assigned_staff_id = int(staff_choice) if staff_choice else None
+    if staff_choice:
+        trek.assigned_staff_id = int(staff_choice)
+    else:
+        trek.assigned_staff_id = None
 
-    start_str = request.form.get('start_date')
-    end_str = request.form.get('end_date')
-    if start_str:
-        trek.start_date = datetime.strptime(start_str, '%Y-%m-%d').date()
-    if end_str:
-        trek.end_date = datetime.strptime(end_str, '%Y-%m-%d').date()
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+
+    if start_date:
+        trek.start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    if end_date:
+        trek.end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
 
     db.session.commit()
+
     return redirect(url_for('manage_treks'))
 
 
@@ -258,10 +265,12 @@ def delete_trek(id):
         return redirect(url_for('login'))
 
     trek = Trek.query.get(id)
+
     if not trek:
         return redirect(url_for('manage_treks'))
 
-    if Booking.query.filter_by(trek_id=trek.id).count() > 0:
+    old_bookings = Booking.query.filter_by(trek_id=trek.id).count()
+    if old_bookings > 0:
         return 'This trek has booking history, cannot be deleted'
 
     db.session.delete(trek)
@@ -276,6 +285,7 @@ def assign_trek_staff(id):
         return redirect(url_for('login'))
 
     trek = Trek.query.get(id)
+
     if not trek:
         return 'Trek not found'
 
@@ -284,11 +294,12 @@ def assign_trek_staff(id):
     if request.method == 'GET':
         return render_template('admin/assign_staff.html', trek=trek, staff_options=approved_staff)
 
-    chosen_id = request.form.get('staff_id')
-    if not chosen_id:
-        return 'Pick a staff member first'
+    staff_id = request.form.get('staff_id')
 
-    trek.assigned_staff_id = int(chosen_id)
+    if not staff_id:
+        return 'Please select a staff member'
+
+    trek.assigned_staff_id = int(staff_id)
     db.session.commit()
 
     return redirect(url_for('manage_treks'))
@@ -300,31 +311,29 @@ def admin_search():
         return redirect(url_for('login'))
 
     keyword = request.args.get('q', '').strip()
-    search_in = request.args.get('type', 'trek')
-    found = []
+    search_type = request.args.get('type', 'trek')
+    results = []
 
     if keyword != '':
-        is_num = keyword.isdigit()
-
-        if search_in == 'trek':
-            if is_num:
-                found = Trek.query.filter(Trek.id == int(keyword)).all()
+        if search_type == 'trek':
+            if keyword.isdigit():
+                results = Trek.query.filter(Trek.id == int(keyword)).all()
             else:
-                found = Trek.query.filter(Trek.name.ilike('%' + keyword + '%')).all()
+                results = Trek.query.filter(Trek.name.ilike('%' + keyword + '%')).all()
 
-        elif search_in == 'staff':
-            if is_num:
-                found = User.query.filter(User.role == 'staff', User.id == int(keyword)).all()
+        elif search_type == 'staff':
+            if keyword.isdigit():
+                results = User.query.filter(User.role == 'staff', User.id == int(keyword)).all()
             else:
-                found = User.query.filter(User.role == 'staff', User.name.ilike('%' + keyword + '%')).all()
+                results = User.query.filter(User.role == 'staff', User.name.ilike('%' + keyword + '%')).all()
 
-        elif search_in == 'user':
-            if is_num:
-                found = User.query.filter(User.role == 'trekker', User.id == int(keyword)).all()
+        elif search_type == 'user':
+            if keyword.isdigit():
+                results = User.query.filter(User.role == 'trekker', User.id == int(keyword)).all()
             else:
-                found = User.query.filter(User.role == 'trekker', User.name.ilike('%' + keyword + '%')).all()
+                results = User.query.filter(User.role == 'trekker', User.name.ilike('%' + keyword + '%')).all()
 
-    return render_template('admin/search_results.html', results=found, keyword=keyword, search_in=search_in)
+    return render_template('admin/search_results.html', results=results, keyword=keyword, search_type=search_type)
 
 
 @app.route('/admin/bookings')
@@ -342,11 +351,12 @@ def admin_user_history(id):
         return redirect(url_for('login'))
 
     person = User.query.get(id)
+
     if not person:
         return 'User not found'
 
-    records = Booking.query.filter_by(user_id=id).order_by(Booking.booking_date.desc()).all()
-    return render_template('admin/user_history.html', person=person, records=records)
+    history = Booking.query.filter_by(user_id=id).order_by(Booking.booking_date.desc()).all()
+    return render_template('admin/user_history.html', person=person, history=history)
 
 
 # ------- Staff --------
@@ -359,8 +369,8 @@ def staff_dashboard():
 
     trek_data = []
     for trek in my_treks:
-        count = Booking.query.filter_by(trek_id=trek.id, status='Booked').count()
-        trek_data.append((trek, count))
+        total = Booking.query.filter_by(trek_id=trek.id, status='Booked').count()
+        trek_data.append((trek, total))
 
     return render_template('staff/staff_dashboard.html', trek_data=trek_data)
 
@@ -372,20 +382,23 @@ def staff_profile():
 
     user = User.query.get(session['user_id'])
 
+    if not user:
+        return redirect(url_for('login'))
+
     if request.method == 'GET':
         return render_template('staff/profile.html', user=user)
 
-    assert user is not None
     user.name = request.form['name']
 
     if user.staff_profile:
         user.staff_profile.contact_details = request.form.get('contact_details')
 
-    new_password = request.form.get('password')
-    if new_password:
-        user.password = new_password
+    password = request.form.get('password')
+    if password:
+        user.password = password
 
     db.session.commit()
+
     return redirect(url_for('staff_profile'))
 
 
@@ -395,6 +408,7 @@ def staff_view_trek(id):
         return redirect(url_for('login'))
 
     trek = Trek.query.get(id)
+
     if not trek:
         return 'Trek not found'
 
@@ -411,6 +425,7 @@ def staff_update_trek(id):
         return redirect(url_for('login'))
 
     trek = Trek.query.get(id)
+
     if not trek:
         return 'Trek not found'
 
@@ -425,15 +440,17 @@ def staff_update_trek(id):
             return 'Slots must be a number'
 
     new_status = request.form.get('status')
+
     if new_status in ['Open', 'Closed', 'Completed']:
         trek.status = new_status
 
         if new_status == 'Completed':
-            still_booked = Booking.query.filter_by(trek_id=trek.id, status='Booked').all()
-            for b in still_booked:
-                b.status = 'Completed'
+            running = Booking.query.filter_by(trek_id=trek.id, status='Booked').all()
+            for booking in running:
+                booking.status = 'Completed'
 
     db.session.commit()
+
     return redirect(url_for('staff_view_trek', id=trek.id))
 
 
@@ -443,14 +460,17 @@ def staff_update_participant(trek_id, booking_id):
         return redirect(url_for('login'))
 
     trek = Trek.query.get(trek_id)
+
     if not trek or trek.assigned_staff_id != session['user_id']:
         return 'This trek is not assigned to you'
 
     booking = Booking.query.get(booking_id)
+
     if not booking or booking.trek_id != trek_id:
         return 'Booking not found'
 
     new_status = request.form.get('status')
+
     if new_status not in ['Booked', 'Cancelled', 'Completed']:
         return redirect(url_for('staff_view_trek', id=trek_id))
 
@@ -469,15 +489,16 @@ def staff_update_participant(trek_id, booking_id):
     return redirect(url_for('staff_view_trek', id=trek_id))
 
 
+# ------- Trekker --------
 @app.route('/trekker/dashboard')
 def trekker_dashboard():
     if session.get('role') != 'trekker':
         return redirect(url_for('login'))
 
     open_treks = Trek.query.filter_by(status='Open').count()
-    my_bookings = Booking.query.filter_by(user_id=session['user_id']).count()
+    total_bookings = Booking.query.filter_by(user_id=session['user_id']).count()
 
-    return render_template('trekker/trekker_dashboard.html', open_treks=open_treks, my_bookings=my_bookings)
+    return render_template('trekker/trekker_dashboard.html', open_treks=open_treks, total_bookings=total_bookings)
 
 
 @app.route('/trekker/profile', methods=['GET', 'POST'])
@@ -487,17 +508,20 @@ def trekker_profile():
 
     user = User.query.get(session['user_id'])
 
+    if not user:
+        return redirect(url_for('login'))
+
     if request.method == 'GET':
         return render_template('trekker/profile.html', user=user)
 
-    assert user is not None
     user.name = request.form['name']
 
-    new_password = request.form.get('password')
-    if new_password:
-        user.password = new_password
+    password = request.form.get('password')
+    if password:
+        user.password = password
 
     db.session.commit()
+
     return redirect(url_for('trekker_profile'))
 
 
@@ -506,18 +530,19 @@ def browse_treks():
     if session.get('role') != 'trekker':
         return redirect(url_for('login'))
 
-    treks_query = Trek.query.filter_by(status='Open')
-
     difficulty = request.args.get('difficulty')
     location = request.args.get('location')
 
-    if difficulty:
-        treks_query = treks_query.filter(Trek.difficulty == difficulty)
-    if location:
-        treks_query = treks_query.filter(Trek.location.ilike('%' + location + '%'))
+    treks = Trek.query.filter_by(status='Open')
 
-    treks = treks_query.all()
-    return render_template('trekker/browse_treks.html', treks=treks, difficulty=difficulty, location=location)
+    if difficulty:
+        treks = treks.filter(Trek.difficulty == difficulty)
+    if location:
+        treks = treks.filter(Trek.location.ilike('%' + location + '%'))
+
+    trek_list = treks.all()
+
+    return render_template('trekker/browse_treks.html', trek_list=trek_list, difficulty=difficulty, location=location)
 
 
 @app.route('/trekker/treks/<int:id>/book', methods=['POST'])
@@ -526,11 +551,13 @@ def book_trek(id):
         return redirect(url_for('login'))
 
     trek = Trek.query.get(id)
+
     if not trek:
         return 'Trek not found'
 
-    already_booked = Booking.query.filter_by(user_id=session['user_id'], trek_id=id, status='Booked').first()
-    if already_booked:
+    old_booking = Booking.query.filter_by(user_id=session['user_id'], trek_id=id, status='Booked').first()
+
+    if old_booking:
         return 'You have already booked this trek'
 
     if trek.status != 'Open':
@@ -539,7 +566,7 @@ def book_trek(id):
     if trek.available_slots <= 0:
         return 'No slots left for this trek'
 
-    new_booking = Booking(user_id=session['user_id'], trek_id=id, status='Booked')  # type: ignore
+    new_booking = Booking(user_id=session['user_id'], trek_id=id, status='Booked') # type: ignore
     trek.available_slots = trek.available_slots - 1
 
     db.session.add(new_booking)
