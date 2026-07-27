@@ -4,23 +4,31 @@ from datetime import datetime
 db = SQLAlchemy()
 
 class User(db.Model):
+    __tablename__ = 'user'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     email = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(100))
     role = db.Column(db.String(20))  # admin, staff, trekker
     is_blacklisted = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class StaffProfile(db.Model):
+    __tablename__ = 'staff_profile'
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     contact_details = db.Column(db.String(120))
     status = db.Column(db.String(20), default="Active")
+    is_approved = db.Column(db.Boolean, default=False)  # Admin approval status
     
     # Relationships
     user = db.relationship('User', backref='staff_profile', uselist=False)
 
 class Trek(db.Model):
+    __tablename__ = 'trek'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
     location = db.Column(db.String(120))
@@ -36,6 +44,8 @@ class Trek(db.Model):
     assigned_staff = db.relationship('User', backref='treks_assigned')
 
 class Booking(db.Model):
+    __tablename__ = 'booking'
+    
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     trek_id = db.Column(db.Integer, db.ForeignKey('trek.id'))
