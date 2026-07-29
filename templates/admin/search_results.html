@@ -6,7 +6,7 @@
 
 <h2 class="mb-4">Search Treks / Staff / Users</h2>
 
-<form method="GET" action="{{ url_for('admin_search') }}" class="row g-2 mb-4">
+<form method="GET" action="{{ url_for('admin.admin_search') }}" class="row g-2 mb-4">
     <div class="col-md-3">
         <select name="type" class="form-select">
             <option value="trek" {% if search_type == 'trek' %}selected{% endif %}>Trek</option>

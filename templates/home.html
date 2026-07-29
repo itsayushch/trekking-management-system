@@ -13,14 +13,14 @@
     </p>
 
     {% if not session.get('user_id') %}
-        <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
-        <a href="{{ url_for('signup') }}" class="btn btn-outline-secondary">Register</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
+        <a href="{{ url_for('auth.signup') }}" class="btn btn-outline-secondary">Register</a>
     {% elif session.get('role') == 'admin' %}
-        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
     {% elif session.get('role') == 'staff' %}
-        <a href="{{ url_for('staff_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+        <a href="{{ url_for('staff.staff_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
     {% else %}
-        <a href="{{ url_for('trekker_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+        <a href="{{ url_for('trekker.trekker_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
     {% endif %}
 </div>
 

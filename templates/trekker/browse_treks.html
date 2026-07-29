@@ -6,7 +6,7 @@
 
 <h2 class="mb-4">Browse Open Treks</h2>
 
-<form method="GET" action="{{ url_for('browse_treks') }}" class="row g-2 mb-4">
+<form method="GET" action="{{ url_for('trekker.browse_treks') }}" class="row g-2 mb-4">
     <div class="col-md-4">
         <select name="difficulty" class="form-select">
             <option value="">All Difficulties</option>
@@ -35,7 +35,7 @@
                 <p class="card-text mb-1"><strong>Duration:</strong> {{ trek.duration_days }} days</p>
                 <p class="card-text mb-3"><strong>Slots Left:</strong> {{ trek.available_slots }}</p>
 
-                <form method="POST" action="{{ url_for('book_trek', id=trek.id) }}" class="mt-auto book-form">
+                <form method="POST" action="{{ url_for('trekker.book_trek', id=trek.id) }}" class="mt-auto book-form">
                     <button type="submit" class="btn btn-success w-100" {% if trek.available_slots <= 0 %}disabled{% endif %}>
                         {% if trek.available_slots <= 0 %}Fully Booked{% else %}Book Now{% endif %}
                     </button>

@@ -9,7 +9,7 @@
 <div class="card">
 <div class="card-body">
 
-<form method="POST" action="{{ url_for('create_trek') }}" id="trekForm">
+<form method="POST" action="{{ url_for('admin.create_trek') }}" id="trekForm">
 
     <div class="row">
         <div class="col-md-6 mb-3">
@@ -68,7 +68,7 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Create Trek</button>
-    <a href="{{ url_for('manage_treks') }}" class="btn btn-outline-secondary">Cancel</a>
+    <a href="{{ url_for('admin.manage_treks') }}" class="btn btn-outline-secondary">Cancel</a>
 </form>
 
 </div>

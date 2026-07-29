@@ -42,14 +42,14 @@
             </td>
             <td>
                 {% if not staff.staff_profile or not staff.staff_profile.is_approved %}
-                    <a href="{{ url_for('approve_staff', id=staff.id) }}" class="btn btn-sm btn-success">Approve</a>
+                    <a href="{{ url_for('admin.approve_staff', id=staff.id) }}" class="btn btn-sm btn-success">Approve</a>
                 {% endif %}
 
-                <a href="{{ url_for('toggle_blacklist', id=staff.id) }}" class="btn btn-sm btn-warning">
+                <a href="{{ url_for('admin.toggle_blacklist', id=staff.id) }}" class="btn btn-sm btn-warning">
                     {% if staff.is_blacklisted %}Unblacklist{% else %}Blacklist{% endif %}
                 </a>
 
-                <a href="{{ url_for('remove_staff', id=staff.id) }}" class="btn btn-sm btn-danger"
+                <a href="{{ url_for('admin.remove_staff', id=staff.id) }}" class="btn btn-sm btn-danger"
                    onclick="return confirm('Remove this staff member? This cannot be undone.')">Remove</a>
             </td>
         </tr>

@@ -31,8 +31,8 @@
                 {% endif %}
             </td>
             <td>
-                <a href="{{ url_for('admin_user_history', id=trekker.id) }}" class="btn btn-sm btn-outline-primary">History</a>
-                <a href="{{ url_for('toggle_blacklist', id=trekker.id) }}" class="btn btn-sm btn-warning">
+                <a href="{{ url_for('admin.admin_user_history', id=trekker.id) }}" class="btn btn-sm btn-outline-primary">History</a>
+                <a href="{{ url_for('admin.toggle_blacklist', id=trekker.id) }}" class="btn btn-sm btn-warning">
                     {% if trekker.is_blacklisted %}Unblacklist{% else %}Blacklist{% endif %}
                 </a>
             </td>

@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<a href="{{ url_for('staff_dashboard') }}" class="btn btn-sm btn-outline-secondary mb-3">&laquo; Back to Dashboard</a>
+<a href="{{ url_for('staff.staff_dashboard') }}" class="btn btn-sm btn-outline-secondary mb-3">&laquo; Back to Dashboard</a>
 
 <h2 class="mb-1">{{ trek.name }}</h2>
 <p class="text-muted mb-4">{{ trek.location }} &middot; {{ trek.difficulty }} &middot; {{ trek.duration_days }} days</p>
@@ -13,7 +13,7 @@
 <div class="card-body">
     <h5 class="card-title">Trek Settings</h5>
 
-    <form method="POST" action="{{ url_for('staff_update_trek', id=trek.id) }}" class="row g-3 align-items-end">
+    <form method="POST" action="{{ url_for('staff.staff_update_trek', id=trek.id) }}" class="row g-3 align-items-end">
 
         <div class="col-md-3">
             <label class="form-label">Available Slots</label>
@@ -74,7 +74,7 @@
                 {% endif %}
             </td>
             <td>
-                <form method="POST" action="{{ url_for('staff_update_participant', trek_id=trek.id, booking_id=booking.id) }}" class="d-flex gap-2">
+                <form method="POST" action="{{ url_for('staff.staff_update_participant', trek_id=trek.id, booking_id=booking.id) }}" class="d-flex gap-2">
                     <select name="status" class="form-select form-select-sm">
                         <option value="Booked" {% if booking.status == 'Booked' %}selected{% endif %}>Booked</option>
                         <option value="Cancelled" {% if booking.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
