@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, flash
 from models import db, User, StaffProfile, Trek, Booking
 from datetime import datetime
 
@@ -12,6 +12,7 @@ with app.app_context():
     db.create_all()
 
 TREK_STATUSES = ['Pending', 'Approved', 'Open', 'Closed', 'Completed']
+DIFFICULTY_LEVELS = ['Easy', 'Moderate', 'Hard']
 
 @app.route('/')
 def home():
@@ -22,18 +23,32 @@ def signup():
     if request.method == 'GET':
         return render_template('signup.html')
 
-    name = request.form['name']
-    email = request.form['email']
+    name = request.form['name'].strip()
+    email = request.form['email'].strip()
     password = request.form['password']
     role = request.form['role']
 
     if role != 'trekker' and role != 'staff':
-        return "Invalid role"
+        flash('Invalid role')
+        return redirect(url_for('signup'))
+
+    if len(name) < 2:
+        flash('Name is too short')
+        return redirect(url_for('signup'))
+
+    if '@' not in email or '.' not in email.split('@')[-1]:
+        flash('Enter a valid email address')
+        return redirect(url_for('signup'))
+
+    if len(password) < 6:
+        flash('Password must be at least 6 characters')
+        return redirect(url_for('signup'))
 
     user = User.query.filter_by(email=email).first()
 
     if user:
-        return 'Account already exists'
+        flash('Account already exists')
+        return redirect(url_for('signup'))
 
     new_user = User(name=name, email=email, password=password, role=role) # type: ignore
     db.session.add(new_user)
@@ -44,8 +59,10 @@ def signup():
         db.session.add(new_profile)
         db.session.commit()
 
-        return "Registered Successfully! Please wait for Admin approval before logging in."
+        flash('Registered successfully! Please wait for Admin approval before logging in.')
+        return redirect(url_for('login'))
 
+    flash('Registered successfully! You can log in now.')
     return redirect(url_for('login'))
 
 
@@ -61,14 +78,17 @@ def login():
     user = User.query.filter_by(email=email, password=password).first()
 
     if not user:
-        return 'Incorrect Email or Password'
+        flash('Incorrect Email or Password')
+        return redirect(url_for('login'))
 
     if user.is_blacklisted:
-        return 'Your account has been blacklisted!'
+        flash('Your account has been blacklisted!')
+        return redirect(url_for('login'))
 
     if user.role == 'staff':
         if not user.staff_profile or not user.staff_profile.is_approved:
-            return "Your staff account is pending Admin approval"
+            flash('Your staff account is pending Admin approval')
+            return redirect(url_for('login'))
 
     session['user_id'] = user.id
     session['role'] = user.role
@@ -139,10 +159,12 @@ def toggle_blacklist(id):
     person = User.query.get(id)
 
     if not person:
-        return 'No such user'
+        flash('No such user')
+        return redirect(request.referrer or url_for('admin_dashboard'))
 
     if person.role == 'admin':
-        return 'Admin cannot be blacklisted!'
+        flash('Admin cannot be blacklisted!')
+        return redirect(request.referrer or url_for('admin_dashboard'))
 
     if person.is_blacklisted:
         person.is_blacklisted = False
@@ -184,24 +206,45 @@ def create_trek():
     if request.method == 'GET':
         return render_template('admin/create_trek.html', staff_options=approved_staff)
 
-    name = request.form['name']
-    location = request.form['location']
+    name = request.form['name'].strip()
+    location = request.form['location'].strip()
     difficulty = request.form['difficulty']
+
+    if not name or not location:
+        flash('Trek name and location are required')
+        return redirect(url_for('create_trek'))
+
+    if difficulty not in DIFFICULTY_LEVELS:
+        flash('Invalid difficulty')
+        return redirect(url_for('create_trek'))
 
     try:
         duration_days = int(request.form['duration_days'])
         available_slots = int(request.form['available_slots'])
     except ValueError:
-        return 'Duration and slots must be numbers'
+        flash('Duration and slots must be numbers')
+        return redirect(url_for('create_trek'))
+
+    if duration_days < 1:
+        flash('Duration must be at least 1 day')
+        return redirect(url_for('create_trek'))
+
+    if available_slots < 0:
+        flash('Available slots cannot be negative')
+        return redirect(url_for('create_trek'))
+
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+
+    if start_date and end_date and end_date < start_date:
+        flash('End date cannot be before start date')
+        return redirect(url_for('create_trek'))
 
     new_trek = Trek(name=name, location=location, difficulty=difficulty, duration_days=duration_days, available_slots=available_slots, status='Pending') # type: ignore
 
     staff_choice = request.form.get('assigned_staff_id')
     if staff_choice:
         new_trek.assigned_staff_id = int(staff_choice)
-
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
 
     if start_date:
         new_trek.start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
@@ -222,22 +265,58 @@ def edit_trek(id):
     trek = Trek.query.get(id)
 
     if not trek:
-        return 'Trek not found'
+        flash('Trek not found')
+        return redirect(url_for('manage_treks'))
 
     if request.method == 'GET':
         approved_staff = User.query.join(StaffProfile).filter(User.role == 'staff', StaffProfile.is_approved == True).all()
         return render_template('admin/edit_trek.html', trek=trek, staff_options=approved_staff)
 
-    trek.name = request.form['name']
-    trek.location = request.form['location']
-    trek.difficulty = request.form['difficulty']
-    trek.duration_days = int(request.form['duration_days'])
-    trek.available_slots = int(request.form['available_slots'])
+    name = request.form['name'].strip()
+    location = request.form['location'].strip()
+    difficulty = request.form['difficulty']
+
+    if not name or not location:
+        flash('Trek name and location are required')
+        return redirect(url_for('edit_trek', id=id))
+
+    if difficulty not in DIFFICULTY_LEVELS:
+        flash('Invalid difficulty')
+        return redirect(url_for('edit_trek', id=id))
+
+    try:
+        duration_days = int(request.form['duration_days'])
+        available_slots = int(request.form['available_slots'])
+    except ValueError:
+        flash('Duration and slots must be numbers')
+        return redirect(url_for('edit_trek', id=id))
+
+    if duration_days < 1:
+        flash('Duration must be at least 1 day')
+        return redirect(url_for('edit_trek', id=id))
+
+    if available_slots < 0:
+        flash('Available slots cannot be negative')
+        return redirect(url_for('edit_trek', id=id))
+
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+
+    if start_date and end_date and end_date < start_date:
+        flash('End date cannot be before start date')
+        return redirect(url_for('edit_trek', id=id))
+
+    trek.name = name
+    trek.location = location
+    trek.difficulty = difficulty
+    trek.duration_days = duration_days
+    trek.available_slots = available_slots
 
     new_status = request.form.get('status')
     if new_status:
         if new_status not in TREK_STATUSES:
-            return 'Invalid status'
+            flash('Invalid status')
+            return redirect(url_for('edit_trek', id=id))
         trek.status = new_status
 
     staff_choice = request.form.get('assigned_staff_id')
@@ -245,9 +324,6 @@ def edit_trek(id):
         trek.assigned_staff_id = int(staff_choice)
     else:
         trek.assigned_staff_id = None
-
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
 
     if start_date:
         trek.start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
@@ -271,7 +347,8 @@ def delete_trek(id):
 
     old_bookings = Booking.query.filter_by(trek_id=trek.id).count()
     if old_bookings > 0:
-        return 'This trek has booking history, cannot be deleted'
+        flash('This trek has booking history, cannot be deleted')
+        return redirect(url_for('manage_treks'))
 
     db.session.delete(trek)
     db.session.commit()
@@ -287,7 +364,8 @@ def assign_trek_staff(id):
     trek = Trek.query.get(id)
 
     if not trek:
-        return 'Trek not found'
+        flash('Trek not found')
+        return redirect(url_for('manage_treks'))
 
     approved_staff = User.query.join(StaffProfile).filter(User.role == 'staff', StaffProfile.is_approved == True).all()
 
@@ -297,9 +375,20 @@ def assign_trek_staff(id):
     staff_id = request.form.get('staff_id')
 
     if not staff_id:
-        return 'Please select a staff member'
+        flash('Please select a staff member')
+        return redirect(url_for('assign_trek_staff', id=id))
 
-    trek.assigned_staff_id = int(staff_id)
+    picked_staff = User.query.get(int(staff_id))
+
+    if not picked_staff or picked_staff.role != 'staff':
+        flash('That staff member does not exist')
+        return redirect(url_for('assign_trek_staff', id=id))
+
+    if not picked_staff.staff_profile or not picked_staff.staff_profile.is_approved:
+        flash('That staff member is not approved yet')
+        return redirect(url_for('assign_trek_staff', id=id))
+
+    trek.assigned_staff_id = picked_staff.id
     db.session.commit()
 
     return redirect(url_for('manage_treks'))
@@ -353,7 +442,8 @@ def admin_user_history(id):
     person = User.query.get(id)
 
     if not person:
-        return 'User not found'
+        flash('User not found')
+        return redirect(url_for('manage_users'))
 
     history = Booking.query.filter_by(user_id=id).order_by(Booking.booking_date.desc()).all()
     return render_template('admin/user_history.html', person=person, history=history)
@@ -388,17 +478,25 @@ def staff_profile():
     if request.method == 'GET':
         return render_template('staff/profile.html', user=user)
 
-    user.name = request.form['name']
+    new_name = request.form['name'].strip()
+    if len(new_name) < 2:
+        flash('Name is too short')
+        return redirect(url_for('staff_profile'))
+    user.name = new_name
 
     if user.staff_profile:
         user.staff_profile.contact_details = request.form.get('contact_details')
 
     password = request.form.get('password')
     if password:
+        if len(password) < 6:
+            flash('Password must be at least 6 characters')
+            return redirect(url_for('staff_profile'))
         user.password = password
 
     db.session.commit()
 
+    flash('Profile updated')
     return redirect(url_for('staff_profile'))
 
 
@@ -410,10 +508,12 @@ def staff_view_trek(id):
     trek = Trek.query.get(id)
 
     if not trek:
-        return 'Trek not found'
+        flash('Trek not found')
+        return redirect(url_for('staff_dashboard'))
 
     if trek.assigned_staff_id != session['user_id']:
-        return 'This trek is not assigned to you'
+        flash('This trek is not assigned to you')
+        return redirect(url_for('staff_dashboard'))
 
     participants = Booking.query.filter_by(trek_id=trek.id).all()
     return render_template('staff/trek_detail.html', trek=trek, participants=participants)
@@ -427,17 +527,26 @@ def staff_update_trek(id):
     trek = Trek.query.get(id)
 
     if not trek:
-        return 'Trek not found'
+        flash('Trek not found')
+        return redirect(url_for('staff_dashboard'))
 
     if trek.assigned_staff_id != session['user_id']:
-        return 'This trek is not assigned to you'
+        flash('This trek is not assigned to you')
+        return redirect(url_for('staff_dashboard'))
 
     slots = request.form.get('available_slots')
     if slots:
         try:
-            trek.available_slots = int(slots)
+            new_slots = int(slots)
         except ValueError:
-            return 'Slots must be a number'
+            flash('Slots must be a number')
+            return redirect(url_for('staff_view_trek', id=id))
+
+        if new_slots < 0:
+            flash('Slots cannot be negative')
+            return redirect(url_for('staff_view_trek', id=id))
+
+        trek.available_slots = new_slots
 
     new_status = request.form.get('status')
 
@@ -462,12 +571,14 @@ def staff_update_participant(trek_id, booking_id):
     trek = Trek.query.get(trek_id)
 
     if not trek or trek.assigned_staff_id != session['user_id']:
-        return 'This trek is not assigned to you'
+        flash('This trek is not assigned to you')
+        return redirect(url_for('staff_dashboard'))
 
     booking = Booking.query.get(booking_id)
 
     if not booking or booking.trek_id != trek_id:
-        return 'Booking not found'
+        flash('Booking not found')
+        return redirect(url_for('staff_view_trek', id=trek_id))
 
     new_status = request.form.get('status')
 
@@ -480,7 +591,8 @@ def staff_update_participant(trek_id, booking_id):
         trek.available_slots = trek.available_slots + 1
     elif old_status == 'Cancelled' and new_status == 'Booked':
         if trek.available_slots <= 0:
-            return 'No slots left to reinstate this booking'
+            flash('No slots left to reinstate this booking')
+            return redirect(url_for('staff_view_trek', id=trek_id))
         trek.available_slots = trek.available_slots - 1
 
     booking.status = new_status
@@ -514,14 +626,22 @@ def trekker_profile():
     if request.method == 'GET':
         return render_template('trekker/profile.html', user=user)
 
-    user.name = request.form['name']
+    new_name = request.form['name'].strip()
+    if len(new_name) < 2:
+        flash('Name is too short')
+        return redirect(url_for('trekker_profile'))
+    user.name = new_name
 
     password = request.form.get('password')
     if password:
+        if len(password) < 6:
+            flash('Password must be at least 6 characters')
+            return redirect(url_for('trekker_profile'))
         user.password = password
 
     db.session.commit()
 
+    flash('Profile updated')
     return redirect(url_for('trekker_profile'))
 
 
@@ -553,18 +673,22 @@ def book_trek(id):
     trek = Trek.query.get(id)
 
     if not trek:
-        return 'Trek not found'
+        flash('Trek not found')
+        return redirect(url_for('browse_treks'))
 
     old_booking = Booking.query.filter_by(user_id=session['user_id'], trek_id=id, status='Booked').first()
 
     if old_booking:
-        return 'You have already booked this trek'
+        flash('You have already booked this trek')
+        return redirect(url_for('browse_treks'))
 
     if trek.status != 'Open':
-        return 'This trek is not open for booking'
+        flash('This trek is not open for booking')
+        return redirect(url_for('browse_treks'))
 
     if trek.available_slots <= 0:
-        return 'No slots left for this trek'
+        flash('No slots left for this trek')
+        return redirect(url_for('browse_treks'))
 
     new_booking = Booking(user_id=session['user_id'], trek_id=id, status='Booked') # type: ignore
     trek.available_slots = trek.available_slots - 1
@@ -572,6 +696,7 @@ def book_trek(id):
     db.session.add(new_booking)
     db.session.commit()
 
+    flash('Trek booked successfully!')
     return redirect(url_for('my_bookings'))
 
 

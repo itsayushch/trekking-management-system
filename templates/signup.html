@@ -11,11 +11,11 @@
             <div class="card-body p-4">
                 <h4 class="card-title mb-4">Create an Account</h4>
 
-                <form method="POST" action="{{ url_for('signup') }}">
+                <form method="POST" action="{{ url_for('signup') }}" id="signupForm">
 
                     <div class="mb-3">
                         <label class="form-label">Full Name</label>
-                        <input type="text" name="name" class="form-control" required>
+                        <input type="text" name="name" id="name" class="form-control" minlength="2" required>
                     </div>
 
                     <div class="mb-3">
@@ -25,7 +25,8 @@
 
                     <div class="mb-3">
                         <label class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" required>
+                        <input type="password" name="password" id="password" class="form-control" minlength="6" required>
+                        <div class="form-text">At least 6 characters.</div>
                     </div>
 
                     <div class="mb-3">
@@ -51,4 +52,21 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // quick client side check so people cant just register with spaces as their name
+    var signupForm = document.getElementById('signupForm');
+
+    signupForm.addEventListener('submit', function (e) {
+        var nameField = document.getElementById('name');
+
+        if (nameField.value.trim().length < 2) {
+            e.preventDefault();
+            alert('Please enter your full name.');
+            nameField.focus();
+        }
+    });
+</script>
 {% endblock %}

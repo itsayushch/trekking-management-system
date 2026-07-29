@@ -35,7 +35,7 @@
                 <p class="card-text mb-1"><strong>Duration:</strong> {{ trek.duration_days }} days</p>
                 <p class="card-text mb-3"><strong>Slots Left:</strong> {{ trek.available_slots }}</p>
 
-                <form method="POST" action="{{ url_for('book_trek', id=trek.id) }}" class="mt-auto">
+                <form method="POST" action="{{ url_for('book_trek', id=trek.id) }}" class="mt-auto book-form">
                     <button type="submit" class="btn btn-success w-100" {% if trek.available_slots <= 0 %}disabled{% endif %}>
                         {% if trek.available_slots <= 0 %}Fully Booked{% else %}Book Now{% endif %}
                     </button>
@@ -50,4 +50,24 @@
     {% endfor %}
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // ask before booking + stop double clicks from sending the same booking twice
+    var bookForms = document.querySelectorAll('.book-form');
+
+    bookForms.forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            if (!confirm('Book this trek?')) {
+                e.preventDefault();
+                return;
+            }
+
+            var btn = form.querySelector('button');
+            btn.disabled = true;
+            btn.innerText = 'Booking...';
+        });
+    });
+</script>
 {% endblock %}
