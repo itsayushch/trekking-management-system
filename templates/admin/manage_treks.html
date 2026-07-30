@@ -9,6 +9,18 @@
     <a href="{{ url_for('admin.create_trek') }}" class="btn btn-primary">+ Create New Trek</a>
 </div>
 
+<form method="GET" action="{{ url_for('admin.manage_treks') }}" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="text" name="q" value="{{ keyword or '' }}" class="form-control" style="width: 300px;" placeholder="Search by ID, name or location">
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Search</button>
+        {% if keyword %}
+            <a href="{{ url_for('admin.manage_treks') }}" class="btn btn-outline-danger">Clear</a>
+        {% endif %}
+    </div>
+</form>
+
 <div class="table-responsive">
 <table class="table table-bordered bg-white align-middle">
     <thead class="table-light">
@@ -21,6 +33,7 @@
             <th>Slots</th>
             <th>Assigned Staff</th>
             <th>Status</th>
+            <th>Progress</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -46,6 +59,15 @@
                 {% endif %}
             </td>
             <td>
+                {% if trek.progress_status == 'Ongoing' %}
+                    <span class="badge bg-info text-dark">Ongoing</span>
+                {% elif trek.progress_status == 'Completed' %}
+                    <span class="badge bg-dark">Completed</span>
+                {% else %}
+                    <span class="badge bg-light text-dark border">Not Started</span>
+                {% endif %}
+            </td>
+            <td>
                 <a href="{{ url_for('admin.edit_trek', id=trek.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                 <a href="{{ url_for('admin.assign_trek_staff', id=trek.id) }}" class="btn btn-sm btn-outline-secondary">Assign Staff</a>
                 <a href="{{ url_for('admin.delete_trek', id=trek.id) }}" class="btn btn-sm btn-danger"
@@ -54,7 +76,9 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="9" class="text-center text-muted">No treks created yet.</td>
+            <td colspan="10" class="text-center text-muted">
+                {% if keyword %}No treks match "{{ keyword }}".{% else %}No treks created yet.{% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>

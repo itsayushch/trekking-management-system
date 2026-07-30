@@ -16,6 +16,7 @@
             <th>Difficulty</th>
             <th>Slots Left</th>
             <th>Status</th>
+            <th>Progress</th>
             <th>Registered Trekkers</th>
             <th>Actions</th>
         </tr>
@@ -39,6 +40,15 @@
                     <span class="badge bg-warning text-dark">{{ trek.status }}</span>
                 {% endif %}
             </td>
+            <td>
+                {% if trek.progress_status == 'Ongoing' %}
+                    <span class="badge bg-info text-dark">Ongoing</span>
+                {% elif trek.progress_status == 'Completed' %}
+                    <span class="badge bg-dark">Completed</span>
+                {% else %}
+                    <span class="badge bg-light text-dark border">Not Started</span>
+                {% endif %}
+            </td>
             <td>{{ count }}</td>
             <td>
                 <a href="{{ url_for('staff.staff_view_trek', id=trek.id) }}" class="btn btn-sm btn-outline-primary">Manage</a>
@@ -46,7 +56,7 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="8" class="text-center text-muted">No treks have been assigned to you yet.</td>
+            <td colspan="9" class="text-center text-muted">No treks have been assigned to you yet.</td>
         </tr>
         {% endfor %}
     </tbody>

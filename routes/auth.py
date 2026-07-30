@@ -8,6 +8,14 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'GET':
+        if (session.get('user_id')):
+            role = session.get('role')
+            if role == 'admin':
+                return redirect(url_for('admin.admin_dashboard'))
+            elif role == 'staff':
+                return redirect(url_for('staff.staff_dashboard'))
+            else:
+                return redirect(url_for('trekker.trekker_dashboard'))
         return render_template('signup.html')
 
     name = request.form['name'].strip()
@@ -57,6 +65,15 @@ def signup():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
+        if (session.get('user_id')):           
+            role = session.get('role')
+            if role == 'admin':
+                return redirect(url_for('admin.admin_dashboard'))
+            elif role == 'staff':
+                return redirect(url_for('staff.staff_dashboard'))
+            else:
+                return redirect(url_for('trekker.trekker_dashboard'))
+
         return render_template('login.html')
 
     email = request.form['email']

@@ -23,8 +23,17 @@ def manage_staff():
     if session.get('role') != 'admin':
         return redirect(url_for('auth.login'))
 
-    staff_list = User.query.filter_by(role='staff').all()
-    return render_template('admin/manage_staff.html', staff_list=staff_list)
+    keyword = request.args.get('q', '').strip()
+    staff_query = User.query.filter_by(role='staff')
+
+    if keyword:
+        if keyword.isdigit():
+            staff_query = staff_query.filter(User.id == int(keyword))
+        else:
+            staff_query = staff_query.filter(db.or_(User.name.ilike('%' + keyword + '%'), User.email.ilike('%' + keyword + '%')))
+
+    staff_list = staff_query.all()
+    return render_template('admin/manage_staff.html', staff_list=staff_list, keyword=keyword)
 
 
 @admin_bp.route('/admin/staff/approve/<int:id>')
@@ -88,8 +97,17 @@ def manage_users():
     if session.get('role') != 'admin':
         return redirect(url_for('auth.login'))
 
-    trekker_list = User.query.filter_by(role='trekker').all()
-    return render_template('admin/manage_users.html', trekker_list=trekker_list)
+    keyword = request.args.get('q', '').strip()
+    trekker_query = User.query.filter_by(role='trekker')
+
+    if keyword:
+        if keyword.isdigit():
+            trekker_query = trekker_query.filter(User.id == int(keyword))
+        else:
+            trekker_query = trekker_query.filter(db.or_(User.name.ilike('%' + keyword + '%'), User.email.ilike('%' + keyword + '%')))
+
+    trekker_list = trekker_query.all()
+    return render_template('admin/manage_users.html', trekker_list=trekker_list, keyword=keyword)
 
 
 @admin_bp.route('/admin/treks')
@@ -97,8 +115,17 @@ def manage_treks():
     if session.get('role') != 'admin':
         return redirect(url_for('auth.login'))
 
-    trek_list = Trek.query.all()
-    return render_template('admin/manage_treks.html', trek_list=trek_list)
+    keyword = request.args.get('q', '').strip()
+    trek_query = Trek.query
+
+    if keyword:
+        if keyword.isdigit():
+            trek_query = trek_query.filter(Trek.id == int(keyword))
+        else:
+            trek_query = trek_query.filter(db.or_(Trek.name.ilike('%' + keyword + '%'), Trek.location.ilike('%' + keyword + '%')))
+
+    trek_list = trek_query.all()
+    return render_template('admin/manage_treks.html', trek_list=trek_list, keyword=keyword)
 
 
 @admin_bp.route('/admin/treks/create', methods=['GET', 'POST'])
@@ -299,44 +326,24 @@ def assign_trek_staff(id):
     return redirect(url_for('admin.manage_treks'))
 
 
-@admin_bp.route('/admin/search')
-def admin_search():
-    if session.get('role') != 'admin':
-        return redirect(url_for('auth.login'))
-
-    keyword = request.args.get('q', '').strip()
-    search_type = request.args.get('type', 'trek')
-    results = []
-
-    if keyword != '':
-        if search_type == 'trek':
-            if keyword.isdigit():
-                results = Trek.query.filter(Trek.id == int(keyword)).all()
-            else:
-                results = Trek.query.filter(Trek.name.ilike('%' + keyword + '%')).all()
-
-        elif search_type == 'staff':
-            if keyword.isdigit():
-                results = User.query.filter(User.role == 'staff', User.id == int(keyword)).all()
-            else:
-                results = User.query.filter(User.role == 'staff', User.name.ilike('%' + keyword + '%')).all()
-
-        elif search_type == 'user':
-            if keyword.isdigit():
-                results = User.query.filter(User.role == 'trekker', User.id == int(keyword)).all()
-            else:
-                results = User.query.filter(User.role == 'trekker', User.name.ilike('%' + keyword + '%')).all()
-
-    return render_template('admin/search_results.html', results=results, keyword=keyword, search_type=search_type)
-
-
 @admin_bp.route('/admin/bookings')
 def admin_bookings():
     if session.get('role') != 'admin':
         return redirect(url_for('auth.login'))
 
-    booking_list = Booking.query.order_by(Booking.booking_date.desc()).all()
-    return render_template('admin/bookings.html', booking_list=booking_list)
+    keyword = request.args.get('q', '').strip()
+    bookings_query = Booking.query
+
+    if keyword:
+        if keyword.isdigit():
+            bookings_query = bookings_query.filter(Booking.id == int(keyword))
+        else:
+            bookings_query = bookings_query.join(User, Booking.user_id == User.id).join(Trek, Booking.trek_id == Trek.id).filter(
+                db.or_(User.name.ilike('%' + keyword + '%'), Trek.name.ilike('%' + keyword + '%'))
+            )
+
+    booking_list = bookings_query.order_by(Booking.booking_date.desc()).all()
+    return render_template('admin/bookings.html', booking_list=booking_list, keyword=keyword)
 
 
 @admin_bp.route('/admin/users/<int:id>/history')

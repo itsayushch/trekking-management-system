@@ -37,6 +37,7 @@ class Trek(db.Model):
     available_slots = db.Column(db.Integer)
     assigned_staff_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     status = db.Column(db.String(20), default="Pending")
+    progress_status = db.Column(db.String(20), default="Not Started")  # tracks Not Started/Ongoing/Completed, separate from Open/Closed booking status
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
     

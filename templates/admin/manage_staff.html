@@ -6,6 +6,18 @@
 
 <h2 class="mb-4">Trek Staff</h2>
 
+<form method="GET" action="{{ url_for('admin.manage_staff') }}" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="text" name="q" value="{{ keyword or '' }}" class="form-control" style="width: 300px;" placeholder="Search by ID, name or email">
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Search</button>
+        {% if keyword %}
+            <a href="{{ url_for('admin.manage_staff') }}" class="btn btn-outline-danger">Clear</a>
+        {% endif %}
+    </div>
+</form>
+
 <div class="table-responsive">
 <table class="table table-bordered bg-white align-middle">
     <thead class="table-light">
@@ -55,7 +67,9 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="7" class="text-center text-muted">No staff members yet.</td>
+            <td colspan="7" class="text-center text-muted">
+                {% if keyword %}No staff match "{{ keyword }}".{% else %}No staff members yet.{% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>

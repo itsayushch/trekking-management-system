@@ -33,13 +33,18 @@
         </div>
 
         <div class="col-md-3">
+            <label class="form-label">Trek Progress</label>
+            <select name="progress_status" class="form-select">
+                <option value="Not Started" {% if trek.progress_status == 'Not Started' %}selected{% endif %}>Not Started</option>
+                <option value="Ongoing" {% if trek.progress_status == 'Ongoing' %}selected{% endif %}>Ongoing</option>
+                <option value="Completed" {% if trek.progress_status == 'Completed' %}selected{% endif %}>Completed</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
             <button type="submit" class="btn btn-primary">Update Trek</button>
         </div>
     </form>
-
-    <div class="form-text mt-2">
-        Marking the trek as Completed will also mark every currently booked trekker as Completed.
-    </div>
 </div>
 </div>
 

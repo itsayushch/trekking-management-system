@@ -6,6 +6,18 @@
 
 <h2 class="mb-4">Trekkers</h2>
 
+<form method="GET" action="{{ url_for('admin.manage_users') }}" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="text" name="q" value="{{ keyword or '' }}" class="form-control" style="width: 300px;" placeholder="Search by ID, name or email">
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Search</button>
+        {% if keyword %}
+            <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-danger">Clear</a>
+        {% endif %}
+    </div>
+</form>
+
 <div class="table-responsive">
 <table class="table table-bordered bg-white align-middle">
     <thead class="table-light">
@@ -39,7 +51,9 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="5" class="text-center text-muted">No trekkers registered yet.</td>
+            <td colspan="5" class="text-center text-muted">
+                {% if keyword %}No trekkers match "{{ keyword }}".{% else %}No trekkers registered yet.{% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>

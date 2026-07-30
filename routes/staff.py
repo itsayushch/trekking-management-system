@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, session, url_for, flash
 from models import db, User, Trek, Booking
+from constants import TREK_PROGRESS_STATUSES
 
 staff_bp = Blueprint('staff', __name__)
 
@@ -111,6 +112,11 @@ def staff_update_trek(id):
             running = Booking.query.filter_by(trek_id=trek.id, status='Booked').all()
             for booking in running:
                 booking.status = 'Completed'
+
+    new_progress = request.form.get('progress_status')
+
+    if new_progress in TREK_PROGRESS_STATUSES:
+        trek.progress_status = new_progress
 
     db.session.commit()
 

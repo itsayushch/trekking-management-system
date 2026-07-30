@@ -25,7 +25,6 @@
                     <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin.manage_staff' %}active{% endif %}" href="{{ url_for('admin.manage_staff') }}">Staff</a></li>
                     <li class="nav-item"><a class="nav-link {% if request.endpoint in ['admin.manage_users', 'admin.admin_user_history'] %}active{% endif %}" href="{{ url_for('admin.manage_users') }}">Users</a></li>
                     <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin.admin_bookings' %}active{% endif %}" href="{{ url_for('admin.admin_bookings') }}">Bookings</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin.admin_search' %}active{% endif %}" href="{{ url_for('admin.admin_search') }}">Search</a></li>
 
                 {% elif session.get('role') == 'staff' %}
                     <li class="nav-item"><a class="nav-link {% if request.endpoint == 'staff.staff_dashboard' %}active{% endif %}" href="{{ url_for('staff.staff_dashboard') }}">Dashboard</a></li>
@@ -54,17 +53,41 @@
     {% block content %}{% endblock %}
 </div>
 
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <script>
-            {% for msg in messages %}
-                window.alert({{ msg|tojson }});
-            {% endfor %}
-        </script>
-    {% endif %}
-{% endwith %}
+{% set messages = get_flashed_messages() %}
+{% if messages %}
+<div class="modal fade" id="flashModal" tabindex="-1" aria-labelledby="flashModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="flashModalLabel">Notice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% for msg in messages %}
+                <p>{{ msg }}</p>
+                {% endfor %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+{% if messages %}
+<script>
+    var flashModal = new bootstrap.Modal(document.getElementById('flashModal'));
+    flashModal.show();
+
+    setTimeout(() => {
+        flashModal.hide();
+    }, 3000); // Auto-hide after 3 seconds
+</script>
+{% endif %}
+
 {% block scripts %}{% endblock %}
 </body>
 </html>
