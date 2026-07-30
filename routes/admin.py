@@ -172,7 +172,7 @@ def create_trek():
         flash('End date cannot be before start date')
         return redirect(url_for('admin.create_trek'))
 
-    new_trek = Trek(name=name, location=location, difficulty=difficulty, duration_days=duration_days, available_slots=available_slots, status='Pending') # type: ignore
+    new_trek = Trek(name=name, location=location, difficulty=difficulty, duration_days=duration_days, available_slots=available_slots, status='Pending') 
 
     staff_choice = request.form.get('assigned_staff_id')
     if staff_choice:

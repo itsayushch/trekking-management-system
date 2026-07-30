@@ -92,7 +92,7 @@ def book_trek(id):
         flash('No slots left for this trek')
         return redirect(url_for('trekker.browse_treks'))
 
-    new_booking = Booking(user_id=session['user_id'], trek_id=id, status='Booked') # type: ignore
+    new_booking = Booking(user_id=session['user_id'], trek_id=id, status='Booked')
     trek.available_slots = trek.available_slots - 1
 
     db.session.add(new_booking)

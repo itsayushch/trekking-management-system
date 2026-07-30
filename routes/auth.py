@@ -45,12 +45,12 @@ def signup():
         flash('Account already exists')
         return redirect(url_for('auth.signup'))
 
-    new_user = User(name=name, email=email, password=password, role=role) # type: ignore
+    new_user = User(name=name, email=email, password=password, role=role) 
     db.session.add(new_user)
     db.session.commit()
 
     if role == 'staff':
-        new_profile = StaffProfile(user_id=new_user.id)  # type: ignore
+        new_profile = StaffProfile(user_id=new_user.id)  
         db.session.add(new_profile)
         db.session.commit()
 

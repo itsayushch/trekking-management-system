@@ -21,7 +21,7 @@ class StaffProfile(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     contact_details = db.Column(db.String(120))
     status = db.Column(db.String(20), default="Active")
-    is_approved = db.Column(db.Boolean, default=False)  # Admin approval status
+    is_approved = db.Column(db.Boolean, default=False) 
     
     # Relationships
     user = db.relationship('User', backref=db.backref('staff_profile', uselist=False))
@@ -37,7 +37,7 @@ class Trek(db.Model):
     available_slots = db.Column(db.Integer)
     assigned_staff_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     status = db.Column(db.String(20), default="Pending")
-    progress_status = db.Column(db.String(20), default="Not Started")  # tracks Not Started/Ongoing/Completed, separate from Open/Closed booking status
+    progress_status = db.Column(db.String(20), default="Not Started")
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
     
