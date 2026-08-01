@@ -55,12 +55,12 @@
 
 {% set messages = get_flashed_messages() %}
 {% if messages %}
-<div class="modal fade" id="flashModal" tabindex="-1">
+<div class="modal fade" id="flashModal" tabindex="-1" aria-labelledby="flashModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="flashModalLabel">Notice</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 {% for msg in messages %}
@@ -79,15 +79,12 @@
 
 {% if messages %}
 <script>
-    const element = document.getElementById('flashModal');
-
-    const flashModal = new bootstrap.Modal(element);
+    var flashModal = new bootstrap.Modal(document.getElementById('flashModal'));
     flashModal.show();
 
     setTimeout(() => {
-         flashModal.hide();
-    }, 3000);
-    
+        flashModal.hide();
+    }, 3000); // Auto-hide after 3 seconds
 </script>
 {% endif %}
 
