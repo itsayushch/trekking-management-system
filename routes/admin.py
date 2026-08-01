@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, session, url_for, flash
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 from models import db, User, StaffProfile, Trek, Booking
 from constants import TREK_STATUSES, DIFFICULTY_LEVELS
 
@@ -34,6 +35,48 @@ def manage_staff():
 
     staff_list = staff_query.all()
     return render_template('admin/manage_staff.html', staff_list=staff_list, keyword=keyword)
+
+
+@admin_bp.route('/admin/staff/add', methods=['GET', 'POST'])
+def add_staff():
+    if session.get('role') != 'admin':
+        return redirect(url_for('auth.login'))
+
+    if request.method == 'GET':
+        return render_template('admin/add_staff.html')
+
+    name = request.form['name'].strip()
+    email = request.form['email'].strip()
+    password = request.form['password']
+    contact_details = request.form.get('contact_details', '').strip()
+
+    if len(name) < 2:
+        flash('Name is too short')
+        return redirect(url_for('admin.add_staff'))
+
+    if '@' not in email or '.' not in email.split('@')[-1]:
+        flash('Enter a valid email address')
+        return redirect(url_for('admin.add_staff'))
+
+    if len(password) < 6:
+        flash('Password must be at least 6 characters')
+        return redirect(url_for('admin.add_staff'))
+
+    existing = User.query.filter_by(email=email).first()
+    if existing:
+        flash('Account already exists')
+        return redirect(url_for('admin.add_staff'))
+
+    new_staff = User(name=name, email=email, password=generate_password_hash(password), role='staff')
+    db.session.add(new_staff)
+    db.session.commit()
+
+    new_profile = StaffProfile(user_id=new_staff.id, contact_details=contact_details, is_approved=True)
+    db.session.add(new_profile)
+    db.session.commit()
+
+    flash('Staff member added successfully')
+    return redirect(url_for('admin.manage_staff'))
 
 
 @admin_bp.route('/admin/staff/approve/<int:id>')
