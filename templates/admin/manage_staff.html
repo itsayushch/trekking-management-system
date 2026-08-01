@@ -6,17 +6,21 @@
 
 <h2 class="mb-4">Trek Staff</h2>
 
-<form method="GET" action="{{ url_for('admin.manage_staff') }}" class="row g-2 mb-3">
-    <div class="col-auto">
-        <input type="text" name="q" value="{{ keyword or '' }}" class="form-control" style="width: 300px;" placeholder="Search by ID, name or email">
-    </div>
-    <div class="col-auto">
-        <button type="submit" class="btn btn-outline-secondary">Search</button>
-        {% if keyword %}
-            <a href="{{ url_for('admin.manage_staff') }}" class="btn btn-outline-danger">Clear</a>
-        {% endif %}
-    </div>
-</form>
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <form method="GET" action="{{ url_for('admin.manage_staff') }}" class="row g-2">
+        <div class="col-auto">
+            <input type="text" name="q" value="{{ keyword or '' }}" class="form-control" style="width: 300px;" placeholder="Search by ID, name or email">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-secondary">Search</button>
+            {% if keyword %}
+                <a href="{{ url_for('admin.manage_staff') }}" class="btn btn-outline-danger">Clear</a>
+            {% endif %}
+        </div>
+    </form>
+
+    <a href="{{ url_for('admin.add_staff') }}" class="btn btn-success">Add Staff</a>
+</div>
 
 <div class="table-responsive">
 <table class="table table-bordered bg-white align-middle">
@@ -61,10 +65,27 @@
                     {% if staff.is_blacklisted %}Unblacklist{% else %}Blacklist{% endif %}
                 </a>
 
-                <a href="{{ url_for('admin.remove_staff', id=staff.id) }}" class="btn btn-sm btn-danger"
-                   onclick="return confirm('Remove this staff member? This cannot be undone.')">Remove</a>
+                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#removeStaff{{ staff.id }}">Remove</button>
             </td>
         </tr>
+
+        <div class="modal fade" id="removeStaff{{ staff.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Remove Staff Member</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        Remove {{ staff.name }} from the staff list? This cannot be undone.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <a href="{{ url_for('admin.remove_staff', id=staff.id) }}" class="btn btn-danger">Yes, Remove</a>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% else %}
         <tr>
             <td colspan="7" class="text-center text-muted">
