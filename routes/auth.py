@@ -1,9 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, session, url_for, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, StaffProfile
 
 auth_bp = Blueprint('auth', __name__)
-
-
 
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -45,7 +44,7 @@ def signup():
         flash('Account already exists')
         return redirect(url_for('auth.signup'))
 
-    new_user = User(name=name, email=email, password=password, role=role) 
+    new_user = User(name=name, email=email, password=generate_password_hash(password), role=role)
     db.session.add(new_user)
     db.session.commit()
 
@@ -79,9 +78,9 @@ def login():
     email = request.form['email']
     password = request.form['password']
 
-    user = User.query.filter_by(email=email, password=password).first()
+    user = User.query.filter_by(email=email).first()
 
-    if not user:
+    if not user or not check_password_hash(user.password, password):
         flash('Incorrect Email or Password')
         return redirect(url_for('auth.login'))
 

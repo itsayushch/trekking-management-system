@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, session, url_for, flash
+from werkzeug.security import generate_password_hash
 from models import db, User, Trek, Booking
 from constants import TREK_PROGRESS_STATUSES
 
@@ -47,7 +48,7 @@ def staff_profile():
         if len(password) < 6:
             flash('Password must be at least 6 characters')
             return redirect(url_for('staff.staff_profile'))
-        user.password = password
+        user.password = generate_password_hash(password)
 
     db.session.commit()
 
