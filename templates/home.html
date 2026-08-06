@@ -4,60 +4,21 @@
 
 {% block content %}
 
-<div class="p-5 mb-4 bg-white rounded-3 shadow-sm">
-    <h1 class="display-5">Trekking Management Application</h1>
-    <p class="lead">
-        Plan, organise and book treks in one place. Admins create and manage trek routes,
-        trek staff handle the treks assigned to them, and trekkers can browse open treks
-        and book a slot.
-    </p>
-
-    {% if not session.get('user_id') %}
-        <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
-        <a href="{{ url_for('auth.signup') }}" class="btn btn-outline-secondary">Register</a>
-    {% elif session.get('role') == 'admin' %}
-        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
-    {% elif session.get('role') == 'staff' %}
-        <a href="{{ url_for('staff.staff_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
-    {% else %}
-        <a href="{{ url_for('trekker.trekker_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
-    {% endif %}
-</div>
-
-<div class="row">
-    <div class="col-md-4 mb-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Admin</h5>
-                <p class="card-text">
-                    Creates trek routes, adds trek staff, assigns staff to treks and keeps
-                    track of every booking made in the system.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4 mb-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Trek Staff</h5>
-                <p class="card-text">
-                    Sees only the treks assigned by the admin, updates available slots and
-                    trek status, and manages the list of registered trekkers.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4 mb-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Trekker</h5>
-                <p class="card-text">
-                    Registers an account, searches treks by difficulty and location, books a
-                    slot on open treks and views the complete trekking history.
-                </p>
-            </div>
+<div class="px-4 py-5 my-5 text-center">
+    <h1 class="display-5 fw-bold text-body-emphasis">Trekking Management</h1>
+    <div class="col-lg-6 mx-auto">
+        <p class="lead mb-4">Plan, organise and book treks in one place. Admins create and manage trek routes, trek staff handle the treks assigned to them, and trekkers can browse open treks and book a slot.</p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            {% if not session.get('user_id') %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-4 gap-3">Login</a>
+                <a href="{{ url_for('auth.signup') }}" class="btn btn-outline-secondary btn-lg px-4">Register</a>
+            {% elif session.get('role') == 'admin' %}
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-primary btn-lg px-4">Go to Dashboard</a>
+            {% elif session.get('role') == 'staff' %}
+                <a href="{{ url_for('staff.staff_dashboard') }}" class="btn btn-primary btn-lg px-4">Go to Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('trekker.trekker_dashboard') }}" class="btn btn-primary btn-lg px-4">Go to Dashboard</a>
+            {% endif %}
         </div>
     </div>
 </div>
