@@ -19,9 +19,9 @@ def signup():
                 return redirect(url_for('trekker.trekker_dashboard'))
         return render_template('signup.html')
 
-    name = request.form['name'].strip()
-    email = request.form['email'].strip()
-    password = request.form['password']
+    name = request.form.get('name').strip()
+    email = request.form.get('email').strip()
+    password = request.form.get('password')
     role = request.form['role']
 
     if role != 'trekker' and role != 'staff':
@@ -77,8 +77,8 @@ def login():
 
         return render_template('login.html')
 
-    email = request.form['email']
-    password = request.form['password']
+    email = request.form.get('email')
+    password = request.form.get('password')
 
     user = User.query.filter_by(email=email).first()
 

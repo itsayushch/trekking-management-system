@@ -26,7 +26,7 @@ def staff_profile():
     if session.get('role') != 'staff':
         return redirect(url_for('auth.login'))
 
-    user = User.query.get(session['user_id'])
+    user = User.query.get(session.get('user_id'))
 
     if not user:
         return redirect(url_for('auth.login'))
@@ -34,7 +34,7 @@ def staff_profile():
     if request.method == 'GET':
         return render_template('staff/profile.html', user=user)
 
-    new_name = request.form['name'].strip()
+    new_name = request.form.get('name', '').strip()
     if len(new_name) < 2:
         flash('Name is too short')
         return redirect(url_for('staff.staff_profile'))

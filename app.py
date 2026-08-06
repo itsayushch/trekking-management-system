@@ -1,12 +1,12 @@
-from flask import Flask, jsonify
-from sqlalchemy import text
-from models import db, User
+import os
+from flask import Flask
+from models import db
 
 from routes import home_bp, auth_bp, admin_bp, staff_bp, trekker_bp
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///trekking.db'
-app.secret_key = 'mysecretkey'
+app.secret_key = os.environ.get('SECRET_KEY', 'mysecretkey')
 
 db.init_app(app)
 

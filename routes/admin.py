@@ -45,9 +45,9 @@ def add_staff():
     if request.method == 'GET':
         return render_template('admin/add_staff.html')
 
-    name = request.form['name'].strip()
-    email = request.form['email'].strip()
-    password = request.form['password']
+    name = request.form.get('name', '').strip()
+    email = request.form.get('email', '').strip()
+    password = request.form.get('password')
     contact_details = request.form.get('contact_details', '').strip()
 
     if len(name) < 2:
@@ -181,9 +181,9 @@ def create_trek():
     if request.method == 'GET':
         return render_template('admin/create_trek.html', staff_options=approved_staff)
 
-    name = request.form['name'].strip()
-    location = request.form['location'].strip()
-    difficulty = request.form['difficulty']
+    name = request.form.get('name', '').strip()
+    location = request.form.get('location', '').strip()
+    difficulty = request.form.get('difficulty')
 
     if not name or not location:
         flash('Trek name and location are required')
@@ -247,9 +247,9 @@ def edit_trek(id):
         approved_staff = User.query.join(StaffProfile).filter(User.role == 'staff', StaffProfile.is_approved == True).all()
         return render_template('admin/edit_trek.html', trek=trek, staff_options=approved_staff)
 
-    name = request.form['name'].strip()
-    location = request.form['location'].strip()
-    difficulty = request.form['difficulty']
+    name = request.form.get('name').strip()
+    location = request.form.get('location', '').strip()
+    difficulty = request.form.get('difficulty')
 
     if not name or not location:
         flash('Trek name and location are required')

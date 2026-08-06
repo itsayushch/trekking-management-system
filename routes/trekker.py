@@ -29,7 +29,7 @@ def trekker_profile():
     if request.method == 'GET':
         return render_template('trekker/profile.html', user=user)
 
-    new_name = request.form['name'].strip()
+    new_name = request.form.get('name', '').strip()
     if len(new_name) < 2:
         flash('Name is too short')
         return redirect(url_for('trekker.trekker_profile'))
