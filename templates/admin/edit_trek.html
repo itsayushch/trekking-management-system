@@ -88,16 +88,4 @@
 
 {% endblock %}
 
-{% block scripts %}
-<script>
-    document.getElementById('trekForm').addEventListener('submit', function (e) {
-        var start = document.getElementById('start_date').value;
-        var end = document.getElementById('end_date').value;
 
-        if (start && end && end < start) {
-            e.preventDefault();
-            alert('End date cannot be before the start date.');
-        }
-    });
-</script>
-{% endblock %}

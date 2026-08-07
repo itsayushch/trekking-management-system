@@ -15,7 +15,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Full Name</label>
-                        <input type="text" name="name" id="name" class="form-control" minlength="2" required>
+                        <input type="text" name="name" id="name" class="form-control" minlength="2" pattern=".*\S.*" title="Must contain at least one non-whitespace character" required>
                     </div>
 
                     <div class="mb-3">
@@ -54,19 +54,4 @@
 
 {% endblock %}
 
-{% block scripts %}
-<script>
-    // quick client side check so people cant just register with spaces as their name
-    var signupForm = document.getElementById('signupForm');
 
-    signupForm.addEventListener('submit', function (e) {
-        var nameField = document.getElementById('name');
-
-        if (nameField.value.trim().length < 2) {
-            e.preventDefault();
-            alert('Please enter your full name.');
-            nameField.focus();
-        }
-    });
-</script>
-{% endblock %}

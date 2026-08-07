@@ -58,17 +58,16 @@
 
 {% block scripts %}
 <script>
-    // ask before booking + stop double clicks from sending the same booking twice
-    var bookForms = document.querySelectorAll('.book-form');
+    const bookForms = document.querySelectorAll('.book-form');
 
-    bookForms.forEach(function (form) {
-        form.addEventListener('submit', function (e) {
+    bookForms.forEach((form) => {
+        form.addEventListener('submit', event => {
             if (!confirm('Book this trek?')) {
-                e.preventDefault();
+                event.preventDefault();
                 return;
             }
 
-            var btn = form.querySelector('button');
+            const btn = form.querySelector('button');
             btn.disabled = true;
             btn.innerText = 'Booking...';
         });
