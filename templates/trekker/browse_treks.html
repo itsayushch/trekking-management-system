@@ -16,10 +16,10 @@
         </select>
     </div>
     <div class="col-md-5">
-        <input type="text" name="location" class="form-control" placeholder="Filter by location" value="{{ location or '' }}">
+        <input type="text" name="search_query" class="form-control" placeholder="Search by name or location" value="{{ search_query or '' }}">
     </div>
     <div class="col-md-3">
-        <button type="submit" class="btn btn-primary w-100">Filter</button>
+        <button type="submit" class="btn btn-primary w-100">Search</button>
     </div>
 </form>
 
@@ -36,9 +36,13 @@
                 <p class="card-text mb-3"><strong>Slots Left:</strong> {{ trek.available_slots }}</p>
 
                 <form method="POST" action="{{ url_for('trekker.book_trek', id=trek.id) }}" class="mt-auto book-form">
-                    <button type="submit" class="btn btn-success w-100" {% if trek.available_slots <= 0 %}disabled{% endif %}>
-                        {% if trek.available_slots <= 0 %}Fully Booked{% else %}Book Now{% endif %}
-                    </button>
+                    {% if trek.id in booked_trek_ids %}
+                        <button type="button" class="btn btn-secondary w-100" disabled>Booked</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-success w-100" {% if trek.available_slots <= 0 %}disabled{% endif %}>
+                            {% if trek.available_slots <= 0 %}Fully Booked{% else %}Book Now{% endif %}
+                        </button>
+                    {% endif %}
                 </form>
             </div>
         </div>

@@ -54,18 +54,22 @@ def browse_treks():
         return redirect(url_for('auth.login'))
 
     difficulty = request.args.get('difficulty')
-    location = request.args.get('location')
+    search_query = request.args.get('search_query')
 
     treks = Trek.query.filter_by(status='Open')
 
     if difficulty:
         treks = treks.filter(Trek.difficulty == difficulty)
-    if location:
-        treks = treks.filter(Trek.location.ilike('%' + location + '%'))
+    if search_query:
+        from sqlalchemy import or_
+        treks = treks.filter(or_(Trek.location.ilike('%' + search_query + '%'), Trek.name.ilike('%' + search_query + '%')))
 
     trek_list = treks.all()
+    
+    user_id = session.get('user_id')
+    booked_trek_ids = [booking.trek_id for booking in Booking.query.filter_by(user_id=user_id).all()]
 
-    return render_template('trekker/browse_treks.html', trek_list=trek_list, difficulty=difficulty, location=location)
+    return render_template('trekker/browse_treks.html', trek_list=trek_list, difficulty=difficulty, search_query=search_query, booked_trek_ids=booked_trek_ids)
 
 
 @trekker_bp.route('/trekker/treks/<int:id>/book', methods=['POST'])
